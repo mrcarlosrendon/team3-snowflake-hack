@@ -21,7 +21,7 @@ show_nursing = st.checkbox("Show Nursing Homes", value=True, key='nursing')
 show_hospital = st.checkbox("Show Hospitals", value=True, key='hospital')
 show_dialysis = st.checkbox("Show Dialysis Centers", value=True, key='dialysis')
 show_shelter = st.checkbox("Show Shelters", value=True, key='shelters')
-show_vuln = st.checkbox("Show Vulnerability", value=True, key='vuln')
+#show_vuln = st.checkbox("Show Vulnerability", value=True, key='vuln')
 
 
 nursing_data = session.sql(""" 
@@ -152,8 +152,8 @@ if show_dialysis:
     layers.append(dialysis_layer)
 if show_shelter:
     layers.append(shelter_layer)
-if show_vuln:
-    layers.append(vuln_layer)
+#if show_vuln:
+#    layers.append(vuln_layer)
 
 
 st.pydeck_chart(
