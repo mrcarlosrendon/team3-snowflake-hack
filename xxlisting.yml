@@ -1,0 +1,25 @@
+listing_kind: event_solution
+name: "Working with Geospatial  Data"
+version: "v1"
+tier: 2
+description: "A Location Centric Analytic experience - enabling you to understand how to work with geospatial data"
+creator: "becky.oconnor@snowflake.com"
+use_case:
+  - "Flood Risk"
+  - "Solar Power Insights"
+  - "Government Policy Planning"
+  - "Urban Planning"
+vertical_applicability:
+  - "Product Demos"
+snowflake_feature:
+  - "Geospatial Datatypes"
+  - "Geojson"
+  - "Well Known Text"
+  - "Well Known Binary"
+  - "H3"
+  - "Polygons"
+  - "Line Strings"
+  - "Points"
+  - "Spatial Joins"
+  - "Pydeck"
+  - "Geospatial Calculations"
