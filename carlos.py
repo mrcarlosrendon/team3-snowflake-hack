@@ -3,6 +3,7 @@ import streamlit as st
 import pandas as pd
 import snowflake.connector
 import pydeck as pdk
+import h3
 
 from snowflake.snowpark.functions import *
 from snowflake.snowpark.types import *
@@ -20,6 +21,7 @@ show_nursing = st.checkbox("Show Nursing Homes", value=True, key='nursing')
 show_hospital = st.checkbox("Show Hospitals", value=True, key='hospital')
 show_dialysis = st.checkbox("Show Dialysis Centers", value=True, key='dialysis')
 show_shelter = st.checkbox("Show Shelters", value=True, key='shelters')
+show_vuln = st.checkbox("Show Vulnerability", value=True, key='vuln')
 
 
 nursing_data = session.sql(""" 
@@ -98,6 +100,37 @@ tooltip = {
     "style": {"backgroundColor": "steelblue", "color": "white"}
 }
 
+
+
+h3_cells = session.sql(""" 
+SELECT
+  t.M_HU,
+  h3_cell.value::INTEGER AS H3_CELL_ID
+FROM
+  DATAOPS_EVENT_PROD.HACKATHON_DATASETS.SOCIAL_VULNERABILITY_INDEX t,
+  LATERAL FLATTEN(input => H3_POLYGON_TO_CELLS(t.GEO, 8)) h3_cell
+WHERE t.STATE = 'Louisiana'
+""").to_pandas()
+
+# Get polygon boundaries for each H3 cell
+polygons = []
+for cell in h3_cells:
+    boundary = h3.h3_to_geo_boundary(cell, geo_json=True)
+    polygons.append({
+        "polygon": [list(coord) for coord in boundary],
+        "h3_cell": cell
+    })
+
+# Create a pydeck layer
+vuln_layer = pdk.Layer(
+    "PolygonLayer",
+    polygons,
+    get_polygon="polygon",
+    get_fill_color="[200, 30, 0, 40]",
+    pickable=True,
+    auto_highlight=True
+)
+
 # Collect selected layers
 layers = []
 if show_nursing:
@@ -108,6 +141,8 @@ if show_dialysis:
     layers.append(dialysis_layer)
 if show_shelter:
     layers.append(shelter_layer)
+if show_vuln:
+    layers.append(vuln_layer)
 
 
 st.pydeck_chart(
