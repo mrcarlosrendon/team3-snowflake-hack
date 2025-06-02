@@ -105,28 +105,39 @@ tooltip = {
 h3_cells = session.sql(""" 
 SELECT
   t.M_HU,
-  h3_cell.value::INTEGER AS H3_CELL_ID
+  h3_cell.value::STRING AS H3_CELL_ID
 FROM
   DATAOPS_EVENT_PROD.HACKATHON_DATASETS.SOCIAL_VULNERABILITY_INDEX t,
-  LATERAL FLATTEN(input => H3_POLYGON_TO_CELLS(t.GEO, 8)) h3_cell
+  LATERAL FLATTEN(input => H3_POLYGON_TO_CELLS_STRINGS(t.GEO, 8)) h3_cell
 WHERE t.STATE = 'Louisiana'
+LIMIT 1000
 """).to_pandas()
 
-# Get polygon boundaries for each H3 cell
 polygons = []
-for cell in h3_cells:
-    boundary = h3.h3_to_geo_boundary(cell, geo_json=True)
+for _, row in h3_cells.iterrows():
+    cell_id = str(row["H3_CELL_ID"])
+    boundary = h3.h3_to_geo_boundary(cell_id, geo_json=True)
     polygons.append({
         "polygon": [list(coord) for coord in boundary],
-        "h3_cell": cell
+        "h3_cell": cell_id,
+        "M_HU": row["M_HU"]
     })
+
+def get_color(m_hu):
+    # Example: map M_HU (0-1000) to red intensity (40-200)
+    # Adjust min/max as needed for your data
+    min_val, max_val = 100, 300
+    intensity = int(min(m_hu, 255))
+    return [intensity, 0, 0] 
 
 # Create a pydeck layer
 vuln_layer = pdk.Layer(
     "PolygonLayer",
     polygons,
+    opacity=0.2,
     get_polygon="polygon",
-    get_fill_color="[200, 30, 0, 40]",
+    get_fill_color=lambda d: get_color(d["M_HU"]),
+    get_line_color=[255, 255, 255, 0],
     pickable=True,
     auto_highlight=True
 )
